@@ -1,0 +1,3 @@
+E:/GitHub/Robota17.11.23lessons/Labka5/cmake-build-debug/CMakeFiles/Labka5.dir
+E:/GitHub/Robota17.11.23lessons/Labka5/cmake-build-debug/CMakeFiles/edit_cache.dir
+E:/GitHub/Robota17.11.23lessons/Labka5/cmake-build-debug/CMakeFiles/rebuild_cache.dir
