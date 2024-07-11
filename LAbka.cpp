@@ -216,3 +216,88 @@ ASTNode* Parser::factor() {
     ASTNode* node = primary();
     return node;
 }
+ASTNode* Parser::primary() {
+    if (currentToken().type == TokenType::Number) {
+        double value = std::stod(currentToken().text);
+        advance();
+        return new NumberNode(value);
+    }
+    else if (currentToken().type == TokenType::LeftParen) {
+        advance();
+        ASTNode* node = expression();
+        if (currentToken().type != TokenType::RightParen) {
+            throw std::runtime_error("Mismatched parentheses");
+        }
+        advance();
+        return node;
+    }
+    else if (currentToken().type == TokenType::Identifier) {
+        std::string name = currentToken().text;
+        advance();
+        return new VariableNode(name);
+    }
+    else if (currentToken().type == TokenType::Function) {
+        std::string name = currentToken().text;
+        advance();
+        if (currentToken().type != TokenType::LeftParen) {
+            throw std::runtime_error("Expected '(' after function name");
+        }
+        advance();
+        std::vector<ASTNode*> args;
+        while (currentToken().type != TokenType::RightParen) {
+            args.push_back(expression());
+            if (currentToken().type == TokenType::Comma) {
+                advance();
+            }
+        }
+        advance();
+        return new FunctionCallNode(name, args);
+    }
+    throw std::runtime_error("Invalid primary expression");
+}
+
+class Interpreter {
+public:
+    double evaluate(const std::string& input);
+
+private:
+    std::map<std::string, double> variables;
+    std::map<std::string, std::function<double(double, double)>> functions = {
+            {"pow", [](double a, double b) { return std::pow(a, b); }},
+            {"abs", [](double a, double) { return std::abs(a); }},
+            {"max", [](double a, double b) { return std::max(a, b); }},
+            {"min", [](double a, double b) { return std::min(a, b); }}
+    };
+};
+
+double Interpreter::evaluate(const std::string& input) {
+    Lexer lexer(input);
+    std::vector<Token> tokens;
+    Token token = lexer.getNextToken();
+    while (token.type != TokenType::End) {
+        tokens.push_back(token);
+        token = lexer.getNextToken();
+    }
+    Parser parser(tokens);
+    ASTNode* root = parser.parse();
+    double result = root->evaluate();
+    delete root;
+    return result;
+}
+
+int main() {
+    std::string input;
+    std::cout << "> ";
+    std::getline(std::cin, input);
+
+    try {
+        Interpreter interpreter;
+        double result = interpreter.evaluate(input);
+        std::cout << result << std::endl;
+    }
+    catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+    }
+
+    return 0;
+}
